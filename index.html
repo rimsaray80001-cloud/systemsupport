@@ -1,156 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Shop Operation Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body { margin:0; font-family:Arial; background:#f4f6f8; }
-.dashboard { display:flex; height:100vh; }
-.sidebar {
-  width:220px; background:#27AB49; color:#fff;
-  padding:20px;
-}
-.menu li {
-  list-style:none; padding:10px; cursor:pointer;
-}
-.menu li:hover { background:rgba(255,255,255,.2); }
-.content { flex:1; padding:20px; }
-.card {
-  background:#fff; padding:20px;
-  width:250px; border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-  margin-bottom:20px;
-}
-.login-page {
-  display:flex; height:100vh; justify-content:center; align-items:center;
-  background:#27AB49;
-}
-.login-box {
-  background:#fff; padding:30px; border-radius:8px;
-  width:300px; text-align:center;
-}
-input, button {
-  width:100%; padding:10px; margin-bottom:10px;
-}
-button { background:#27AB49; border:none; color:#fff; cursor:pointer; }
-.hidden { display:none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Shop Ops Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .sidebar-bg { background-color: #15753C; }
+        .sidebar-item { transition: all 0.2s ease; border-left: 4px solid transparent; cursor: pointer; }
+        .sidebar-item:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .active-link { background-color: rgba(0,0,0,0.2); border-left: 4px solid #facc15; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); }
+    </style>
 </head>
+<body class="flex h-screen overflow-hidden">
 
-<body>
+    <aside class="w-64 sidebar-bg text-white flex flex-col shadow-2xl z-20">
+        <div class="p-6 text-xl font-bold border-b border-green-800 flex items-center">
+            <i class="fas fa-store mr-3 text-yellow-400"></i> Shop Operations
+        </div>
+        <nav class="flex-1 mt-4">
+            <a onclick="showPage('dashboard')" id="nav-dashboard" class="sidebar-item flex items-center p-4 active-link">
+                <i class="fas fa-th-large w-6"></i> Dashboard
+            </a>
+            <a onclick="showPage('sales')" id="nav-sales" class="sidebar-item flex items-center p-4">
+                <i class="fas fa-chart-line w-6"></i> Sale
+            </a>
+            <a onclick="showPage('topup')" id="nav-topup" class="sidebar-item flex items-center p-4">
+                <i class="fas fa-mobile-alt w-6"></i> Top Up
+            </a>
+            <a onclick="showPage('setting')" id="nav-setting" class="sidebar-item flex items-center p-4">
+                <i class="fas fa-user-cog w-6"></i> Setting
+            </a>
+        </nav>
+    </aside>
 
-<!-- LOGIN -->
-<div id="login" class="login-page">
-  <div class="login-box">
-    <h2>Shop Login</h2>
-    <input id="username" placeholder="Username">
-    <button onclick="login()">Login</button>
-    <p id="error" style="color:red"></p>
-  </div>
-</div>
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 z-10">
+            <h2 id="page-title" class="text-lg font-bold text-gray-700 uppercase tracking-wider">Dashboard</h2>
+            
+            <div id="action-bar">
+                <button id="btn-add-sale" onclick="openModal('sale-modal')" class="hidden bg-[#15753C] text-white px-5 py-2 rounded-lg hover:bg-green-700 flex items-center shadow-md font-semibold">
+                    <i class="fas fa-plus-circle mr-2"></i> Add Sale Report
+                </button>
+                <button id="btn-add-topup" onclick="openModal('topup-modal')" class="hidden bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 flex items-center shadow-md font-semibold">
+                    <i class="fas fa-plus-circle mr-2"></i> Add Top Up
+                </button>
+            </div>
+        </header>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="dashboard hidden">
-  <div class="sidebar">
-    <h3>Shop Ops</h3>
-    <p id="userInfo"></p>
-    <ul class="menu">
-      <li onclick="show('sale')">Daily Sale</li>
-      <li onclick="show('topup')">Top Up</li>
-      <li id="adminMenu" onclick="show('settings')">Settings</li>
-      <li onclick="logout()">Logout</li>
-    </ul>
-  </div>
+        <section class="p-8 overflow-y-auto">
+            <div id="dashboard-page" class="page-content">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-gray-400 text-sm font-bold uppercase">Total Points Today</p>
+                        <p class="text-3xl font-bold text-green-600">0.00</p>
+                    </div>
+                </div>
+            </div>
 
-  <div class="content">
-    <div id="sale" class="page">
-      <div class="card">
-        <p>Daily Sale</p>
-        <h2 id="saleTotal">Loading...</h2>
-      </div>
+            <div id="sales-page" class="page-content hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p class="text-gray-400">Sale report table will sync from Google Sheet ID...</p>
+                </div>
+            </div>
+            
+            </section>
+    </main>
+
+    <div id="sale-modal" class="modal-overlay fixed inset-0 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">New Performance Report</h3>
+                <button onclick="closeModal('sale-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <form id="form-sale">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Agent Name</label>
+                        <input type="text" name="agent" class="w-full border-gray-200 border p-3 rounded-lg focus:border-green-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
+                        <input type="date" name="saleDate" id="sale-date-input" class="w-full border-gray-200 border p-3 rounded-lg focus:border-green-500 outline-none" required>
+                    </div>
+
+                    <div class="col-span-2">
+                        <h4 class="text-sm font-bold text-green-700 mb-3 bg-green-50 p-2 rounded">Product Transactions (Units)</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">Pre-Paid (1.0)</label>
+                                <input type="number" name="unit_prepaid" data-point="1.0" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">Home Internet (3.0)</label>
+                                <input type="number" name="unit_hi" data-point="3.0" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">SME (2.0)</label>
+                                <input type="number" name="unit_sme" data-point="2.0" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">ICT Solution (2.0)</label>
+                                <input type="number" name="unit_ict" data-point="2.0" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">SmartNas (2.0)</label>
+                                <input type="number" name="unit_nas" data-point="2.0" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase">Handset (0.5)</label>
+                                <input type="number" name="unit_device" data-point="0.5" class="unit-input w-full bg-transparent border-b border-gray-300 focus:border-green-500 outline-none text-lg py-1" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex items-center justify-between border-t pt-6">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Performance Points</p>
+                        <p class="text-3xl font-black text-green-700" id="total-points-display">0.00</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeModal('sale-modal')" class="px-6 py-2 text-gray-400 font-bold">Cancel</button>
+                        <button type="button" onclick="handleSaleSubmit()" id="btn-sale-submit" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 transition-all">Save Report</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div id="topup" class="page hidden">
-      <div class="card">
-        <p>Top Up</p>
-        <h2 id="topupTotal">Loading...</h2>
-      </div>
-    </div>
+    <script>
+        const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // PASTE YOUR URL HERE
 
-    <div id="settings" class="page hidden">
-      <h2>Admin Settings</h2>
-      <p>Only admin can see this</p>
-    </div>
-  </div>
-</div>
+        // Page Switcher
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active-link'));
+            
+            document.getElementById(pageId + '-page').classList.remove('hidden');
+            document.getElementById('nav-' + pageId).classList.add('active-link');
+            document.getElementById('page-title').innerText = pageId;
 
-<script>
-const API = "PASTE_YOUR_GAS_URL_HERE";
+            // Toggle Header Buttons
+            document.getElementById('btn-add-sale').classList.toggle('hidden', pageId !== 'sales');
+            document.getElementById('btn-add-topup').classList.toggle('hidden', pageId !== 'topup');
+        }
 
-// ---------------- LOGIN ----------------
-function login() {
-  fetch(API + "?action=users")
-    .then(res => res.json())
-    .then(users => {
-      const u = document.getElementById("username").value;
-      const found = users.find(x => x.username === u);
-      if (!found) return error.innerText="User not found";
+        // Modal Controls
+        function openModal(id) { 
+            document.getElementById(id).classList.remove('hidden'); 
+            if(id === 'sale-modal') {
+                document.getElementById('sale-date-input').valueAsDate = new Date();
+            }
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-      localStorage.setItem("user", JSON.stringify(found));
-      loadDashboard();
-    });
-}
+        // Point Calculation Logic
+        document.querySelectorAll('.unit-input').forEach(input => {
+            input.addEventListener('input', () => {
+                let total = 0;
+                document.querySelectorAll('.unit-input').forEach(inp => {
+                    const units = parseFloat(inp.value) || 0;
+                    const weight = parseFloat(inp.getAttribute('data-point'));
+                    total += (units * weight);
+                });
+                document.getElementById('total-points-display').innerText = total.toFixed(2);
+            });
+        });
 
-// ---------------- LOAD DASHBOARD ----------------
-function loadDashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) return;
+        // Form Submission
+        async function handleSaleSubmit() {
+            const btn = document.getElementById('btn-sale-submit');
+            const form = document.getElementById('form-sale');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            data.totalPoints = document.getElementById('total-points-display').innerText;
+            data.type = "Sale";
+            data.action = "add";
 
-  login.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-  userInfo.innerText = user.username + " (" + user.role + ")";
+            btn.disabled = true;
+            btn.innerText = "Processing...";
 
-  if (user.role !== "admin")
-    adminMenu.style.display = "none";
-
-  loadSale();
-  loadTopup();
-}
-
-// ---------------- DATA ----------------
-function loadSale() {
-  fetch(API + "?action=dailySale")
-    .then(res => res.json())
-    .then(data => {
-      let total = data.reduce((s,i)=>s+Number(i.amount),0);
-      saleTotal.innerText = total + " $";
-    });
-}
-
-function loadTopup() {
-  fetch(API + "?action=topup")
-    .then(res => res.json())
-    .then(data => {
-      let total = data.reduce((s,i)=>s+Number(i.amount),0);
-      topupTotal.innerText = total + " $";
-    });
-}
-
-// ---------------- UI ----------------
-function show(id) {
-  document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-function logout() {
-  localStorage.clear();
-  location.reload();
-}
-
-loadDashboard();
-</script>
-
+            try {
+                // Post to Google Apps Script
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+                
+                alert("Report saved to Google Sheets!");
+                form.reset();
+                document.getElementById('total-points-display').innerText = "0.00";
+                closeModal('sale-modal');
+            } catch (e) {
+                alert("Error: Make sure SCRIPT_URL is correct.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Save Report";
+            }
+        }
+    </script>
 </body>
 </html>
-``
