@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shop Operation Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { margin:0; font-family:Arial; background:#f4f6f8; }
+.dashboard { display:flex; height:100vh; }
+.sidebar {
+  width:220px; background:#27AB49; color:#fff;
+  padding:20px;
+}
+.menu li {
+  list-style:none; padding:10px; cursor:pointer;
+}
+.menu li:hover { background:rgba(255,255,255,.2); }
+.content { flex:1; padding:20px; }
+.card {
+  background:#fff; padding:20px;
+  width:250px; border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  margin-bottom:20px;
+}
+.login-page {
+  display:flex; height:100vh; justify-content:center; align-items:center;
+  background:#27AB49;
+}
+.login-box {
+  background:#fff; padding:30px; border-radius:8px;
+  width:300px; text-align:center;
+}
+input, button {
+  width:100%; padding:10px; margin-bottom:10px;
+}
+button { background:#27AB49; border:none; color:#fff; cursor:pointer; }
+.hidden { display:none; }
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="login-page">
+  <div class="login-box">
+    <h2>Shop Login</h2>
+    <input id="username" placeholder="Username">
+    <button onclick="login()">Login</button>
+    <p id="error" style="color:red"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard hidden">
+  <div class="sidebar">
+    <h3>Shop Ops</h3>
+    <p id="userInfo"></p>
+    <ul class="menu">
+      <li onclick="show('sale')">Daily Sale</li>
+      <li onclick="show('topup')">Top Up</li>
+      <li id="adminMenu" onclick="show('settings')">Settings</li>
+      <li onclick="logout()">Logout</li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div id="sale" class="page">
+      <div class="card">
+        <p>Daily Sale</p>
+        <h2 id="saleTotal">Loading...</h2>
+      </div>
+    </div>
+
+    <div id="topup" class="page hidden">
+      <div class="card">
+        <p>Top Up</p>
+        <h2 id="topupTotal">Loading...</h2>
+      </div>
+    </div>
+
+    <div id="settings" class="page hidden">
+      <h2>Admin Settings</h2>
+      <p>Only admin can see this</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "PASTE_YOUR_GAS_URL_HERE";
+
+// ---------------- LOGIN ----------------
+function login() {
+  fetch(API + "?action=users")
+    .then(res => res.json())
+    .then(users => {
+      const u = document.getElementById("username").value;
+      const found = users.find(x => x.username === u);
+      if (!found) return error.innerText="User not found";
+
+      localStorage.setItem("user", JSON.stringify(found));
+      loadDashboard();
+    });
+}
+
+// ---------------- LOAD DASHBOARD ----------------
+function loadDashboard() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
+
+  login.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+  userInfo.innerText = user.username + " (" + user.role + ")";
+
+  if (user.role !== "admin")
+    adminMenu.style.display = "none";
+
+  loadSale();
+  loadTopup();
+}
+
+// ---------------- DATA ----------------
+function loadSale() {
+  fetch(API + "?action=dailySale")
+    .then(res => res.json())
+    .then(data => {
+      let total = data.reduce((s,i)=>s+Number(i.amount),0);
+      saleTotal.innerText = total + " $";
+    });
+}
+
+function loadTopup() {
+  fetch(API + "?action=topup")
+    .then(res => res.json())
+    .then(data => {
+      let total = data.reduce((s,i)=>s+Number(i.amount),0);
+      topupTotal.innerText = total + " $";
+    });
+}
+
+// ---------------- UI ----------------
+function show(id) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function logout() {
+  localStorage.clear();
+  location.reload();
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
+``
